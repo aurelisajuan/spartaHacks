@@ -22,7 +22,7 @@ class DatabaseClient:
             "lat": coordinates["lat"],
             "lng": coordinates["lng"]
         }
-        
+
         response = self.supabase.table("locations").insert(data_payload).execute()
         return response.data
   
@@ -31,7 +31,7 @@ class DatabaseClient:
         return response.data
     
     def get_food_items(self, location_id: int) -> dict:
-        response = self.supabase.table("food_item").select("*").eq("locationId", location_id).execute()
+        response = self.supabase.table("food_item").select("*").eq("location_id", location_id).execute()
         return response.data
 
     def get_nearby_locations(self, user_lat: float, user_lon: float, search_radius_meters: float):
@@ -44,6 +44,21 @@ class DatabaseClient:
         response = self.supabase.rpc("get_nearby_locations", payload).execute()
         
         return response.data
+    
+    def get_nearby_dietary_locations(self, user_lat: float, user_lon: float, search_radius_meters: float, gluten_free: bool, vegan: bool, vegetarian: bool, halal: bool, kosher: bool):
+        payload = {
+            "user_lat": user_lat,
+            "user_lon": user_lon,
+            "search_radius_meters": search_radius_meters,
+            "want_gluten_free": gluten_free,
+            "want_vegan": vegan,
+            "want_vegetarian": vegetarian,
+            "want_halal": halal,
+            "want_kosher": kosher
+        }
+
+        response = self.supabase.rpc("find_nearest_locations_with_diet", payload).execute()
+        return response.data
 
     def add_food_item(
         self,
@@ -54,7 +69,7 @@ class DatabaseClient:
         vegetarian: bool,
         halal: bool,
         kosher: bool,
-        locationId: int
+        location_id: int
     ) -> dict:
         data_payload = {
             "name": name,
@@ -64,7 +79,7 @@ class DatabaseClient:
             "vegetarian": vegetarian,
             "halal": halal,
             "kosher": kosher,
-            "locationId": locationId
+            "location_id": location_id
         }
         
         response = self.supabase.table("food_item").insert(data_payload).execute()
@@ -74,16 +89,19 @@ class DatabaseClient:
 if __name__ == "__main__":
     db_client = DatabaseClient()
     
-    locations = db_client.get_locations()
-    print(locations)
+    # locations = db_client.get_locations()
+    # print(locations)
     
-    food_items = db_client.get_food_items(1)
-    print(food_items)
+    # food_items = db_client.get_food_items(1)
+    # print(food_items)
     
     # Example parameters (adjust as needed)
     sample_user_lat = -90.0   # example latitude
     sample_user_lon = -90.0   # example longitude
     sample_radius = 5000      # 5 km radius
+
+    dietary_locations = db_client.get_nearby_dietary_locations(sample_user_lat, sample_user_lon, sample_radius, False, False, False, False, False)
+    print(dietary_locations)
 
 
 
