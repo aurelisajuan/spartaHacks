@@ -25,7 +25,7 @@ class DatabaseClient:
 
         response = self.supabase.table("locations").insert(data_payload).execute()
         return response.data
-  
+
     def get_locations(self) -> dict:
         response = self.supabase.table("locations").select("*").execute()
         return response.data
@@ -59,7 +59,7 @@ class DatabaseClient:
 
         response = self.supabase.rpc("find_nearest_locations_with_diet", payload).execute()
         return response.data
-  
+
     def add_food_item(
         self,
         name: str,
@@ -84,18 +84,71 @@ class DatabaseClient:
         
         response = self.supabase.table("food_item").insert(data_payload).execute()
         return response.data
+    
+    def add_call(
+        self,
+        title: str,
+        food_items: str,
+        transcript: str
+    ) -> dict:
+        data_payload = {
+            "title": title,
+            "food_items": food_items,
+            "transcript": transcript
+        }
+        
+        response = self.supabase.table("call").insert(data_payload).execute()
+        return response.data
+    
+    def get_call(self, call_id: int) -> dict:
+        response = self.supabase.table("call").select("*").eq("id", call_id).execute()
+        return response.data
+
+    def upsert_call(
+        self,
+        call_id: int,
+        title: str,
+        food_items: str,
+        transcript: str
+    ) -> dict:
+        data_payload = {
+            "id": call_id,
+            "title": title,
+            "food_items": food_items,
+            "transcript": transcript
+        }
+        
+        response = self.supabase.table("call").upsert(data_payload).execute()
+        return response.data
 
 # Example usage:
 if __name__ == "__main__":
     db_client = DatabaseClient()
-    
-    # Example parameters (adjust as needed)
-    sample_user_lat = -90.0   # example latitude
-    sample_user_lon = -90.0   # example longitude
-    sample_radius = 5000      # 5 km radius
 
-    dietary_locations = db_client.get_nearby_dietary_locations(sample_user_lat, sample_user_lon, sample_radius, False, False, False, False, False)
-    print(dietary_locations)
+    upsert_call = db_client.upsert_call(1, "bill", "HI", "BYE")
+    print("Upserted call record:", upsert_call)
+    
+    # # Example parameters (adjust as needed)
+    # sample_user_lat = -90.0   # example latitude
+    # sample_user_lon = -90.0   # example longitude
+    # sample_radius = 5000      # 5 km radius
+
+    # dietary_locations = db_client.get_nearby_dietary_locations(sample_user_lat, sample_user_lon, sample_radius, False, False, False, False, False)
+    # print(dietary_locations)
+
+    # new_call = db_client.add_call("WARREN", "blabakbababhl", "saasdfasf")
+    # print("Added call record:", new_call)
+    
+    # # Check if a record was inserted and has an ID
+    # if new_call and isinstance(new_call, list) and "id" in new_call[0]:
+    #     call_id = new_call[0]["id"]
+    #     print(f"Retrieving call with ID: {call_id}")
+        
+    #     # Retrieve the call record by ID
+    #     retrieved_call = db_client.get_call(call_id)
+    #     print("Retrieved call record:", retrieved_call)
+    # else:
+    #     print("Error: Call record was not added correctly or no ID was returned.")
 
 
 
