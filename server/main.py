@@ -14,6 +14,7 @@ from custom_types import (
 from typing import Optional
 from socket_manager import manager
 from llm import LlmClient
+from db import DatabaseClient
 
 
 load_dotenv(override=True)
@@ -31,6 +32,7 @@ app.add_middleware(
 )
 
 retell = Retell(api_key=os.environ["RETELL_API_KEY"])
+db = DatabaseClient()
 
 
 @app.post("/webhook")
@@ -137,3 +139,15 @@ async def websocket_handler(websocket: WebSocket, call_id: str):
         await websocket.close(1011, "Server error")
     finally:
         print(f"LLM WebSocket connection closed for {call_id}")
+
+# Returns all locations
+@app.get("/locations")
+async def get_locations():
+    locations = db.get_locations()
+    return locations
+    
+# Returns all food items at a given location
+@app.get("/fooditems/{location_id}")
+async def get_food_items(location_id: int):
+    food_items = db.get_food_items(location_id)
+    return food_items
