@@ -1,9 +1,10 @@
 # [TFT: Team Food Tactics]() 
 
-### Tagline 
+<!-- ### tagline?   -->
 
-### Tech Stack 
 <p align="center">
+    <strong> built with </strong>
+    <br><br>
     <img src="https://img.shields.io/badge/next%20js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="NextJS">
     <img src="https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=blue" alt="Python">
     <img src="https://img.shields.io/badge/fastapi-109989?style=for-the-badge&logo=FASTAPI&logoColor=white" alt="FastAPI">
