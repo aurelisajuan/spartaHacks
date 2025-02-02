@@ -35,6 +35,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      google:
+        specifier: link:@next/third-parties/google
+        version: link:@next/third-parties/google
       lucide-react:
         specifier: ^0.474.0
         version: 0.474.0(react@19.0.0)

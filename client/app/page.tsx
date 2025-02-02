@@ -123,7 +123,7 @@ export default function Page() {
       <Head>
         <title>FoodConnect - Store Locations</title>
       </Head>
-      <div className="flex min-h-screen bg-[#F2F8F8] overflow-hidden">
+      <div className="flex max-h-screen bg-[#F2F8F8] overflow-hidden">
         {/* Left Sidenav */}
         <aside
           className={`bg-[#133223] text-white transition-all duration-300 ${
@@ -162,7 +162,7 @@ export default function Page() {
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <header className="flex h-16 items-center justify-between border-b border-[#55743B]/10 bg-white px-6">
+          <header className="flex h-16 items-center justify-between border-b border-[#55743B]/10 bg-white p-6">
             <h1 className="text-xl font-semibold text-[#133223]">Store Locations</h1>
             <div className="flex items-center gap-4">
               <Button variant="outline" className="gap-2">
@@ -234,7 +234,7 @@ export default function Page() {
               </div>
 
               {/* Live Transcript */}
-              <div className="flex-1 border-t border-[#55743B]/10">
+              <div className="flex-1 border-t border-[#55743B]/10 h-1/2">
                 <div className="px-4 py-2 border-b border-[#55743B]/10">
                   <h2 className="text-lg font-semibold text-[#133223]">Live Transcript</h2>
                 </div>
