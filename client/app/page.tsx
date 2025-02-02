@@ -78,6 +78,7 @@ export default function Page() {
   const [transcript, setTranscript] = useState(initialTranscript)
   const [apiKey, setApiKey] = useState<string | null>(null)
   const transcriptRef = useRef<HTMLDivElement>(null)
+  const lastMessageRef = useRef<HTMLDivElement>(null)
 
   // Load transcript messages periodically
   useEffect(() => {
@@ -94,14 +95,19 @@ export default function Page() {
   }, [])
 
   // Auto scroll to bottom when transcript updates
+  // useEffect(() => {
+  //   if (transcriptRef.current) {
+  //     transcriptRef.current.scrollTo({
+  //       top: transcriptRef.current.scrollHeight,
+  //       behavior: 'smooth'
+  //     });
+  //   }
+  // }, [transcript]);  
   useEffect(() => {
-    if (transcriptRef.current) {
-      transcriptRef.current.scrollTo({
-        top: transcriptRef.current.scrollHeight,
-        behavior: 'smooth'
-      });
+    if (lastMessageRef.current) {
+      lastMessageRef.current.scrollIntoView({ behavior: 'smooth' })
     }
-  }, [transcript]);  
+  }, [transcript])
 
   // Load Google Maps API key from env variable
   useEffect(() => {
@@ -127,7 +133,7 @@ export default function Page() {
       <Head>
         <title>FoodConnect - Store Locations</title>
       </Head>
-      <div className="flex max-h-screen bg-[#F2F8F8] overflow-hidden">
+      <div className="flex min-h-screen bg-[#F2F8F8] overflow-hidden">
         {/* Left Sidenav */}
         <aside
           className={`bg-[#133223] text-white transition-all duration-300 ${
@@ -248,16 +254,22 @@ export default function Page() {
                   ref={transcriptRef}
                 >
                   <div className="space-y-2 p-2">
-                    {transcript.map((msg, index) => (
-                      <div
-                        key={index}
-                        className={`p-2 rounded-lg ${
-                          msg.role === "user" ? "bg-[#32C58E]/10 ml-8" : "bg-[#55743B]/10 mr-8"
-                        }`}
-                      >
-                        <p className="text-sm text-[#133223]">{msg.content}</p>
-                      </div>
-                    ))}
+                  {transcript.map((msg, index) => {
+                      const isLastMessage = index === transcript.length - 1
+                      return (
+                        <div
+                          key={index}
+                          ref={isLastMessage ? lastMessageRef : null}
+                          className={`p-2 rounded-lg ${
+                            msg.role === "user"
+                              ? "bg-[#32C58E]/10 ml-8 rounded-xl"
+                              : "bg-[#55743B]/10 mr-8 rounded-xl"
+                          }`}
+                        >
+                          <p className="text-sm text-[#133223]">{msg.content}</p>
+                        </div>
+                      )
+                    })}
                   </div>
                 </ScrollArea>
               </div>
