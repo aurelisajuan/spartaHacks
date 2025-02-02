@@ -221,7 +221,7 @@ export default function Page() {
                           {store.status}
                         </Badge>
                       </div>
-                      {store.status === "Active" && (
+                      {/* {store.status === "Active" && (
                         <div className="mt-3 grid grid-cols-2 gap-2 border-t border-[#55743B]/10 pt-3 text-sm">
                           <div>
                             <div className="text-[#55743B]">Donations</div>
@@ -232,7 +232,7 @@ export default function Page() {
                             <div className="font-medium text-[#133223]">{store.requests}</div>
                           </div>
                         </div>
-                      )}
+                      )} */}
                     </Card>
                   ))}
                 </div>
