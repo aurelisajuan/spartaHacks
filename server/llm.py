@@ -54,8 +54,9 @@ class LlmClient:
 
     async def draft_response(self, request: ResponseRequiredRequest):
         prompt = self.prepare_prompt(request)
-        stream = self.agent_swarm.run(prompt, stream=True)
+        stream = self.agent_swarm.run(prompt, stream=True, context_variables={"messages": prompt})
 
+        print(stream)
         for chunk in stream:
             if "content" in chunk and chunk["content"]:
                 response = ResponseResponse(

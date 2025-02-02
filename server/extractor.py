@@ -18,8 +18,7 @@ class FoodItem(BaseModel):
     halal: bool
     kosher: bool
 
-
-class FoodItemList(BaseModel):
+ class FoodItemList(BaseModel):
     items: list[FoodItem]
 
 

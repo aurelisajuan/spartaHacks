@@ -3,6 +3,7 @@
 from swarm import Agent
 from typing import Any, Dict, Callable
 from swarm.types import Result
+from generator import generate_sql_insert, fetch_db
 import logging
 
 provider_instructions = """
@@ -94,10 +95,23 @@ class SupplierAgent(Agent):
 
 
 def end_call(context_variables: Dict) -> Result:
-    """Call this function when the supplier is done with their request."""
+    """Call this function when the supplier says goodbye and thank you."""
     logging.info("Ending the call with the supplier.")
     # A natural, friendly end call message
     return Result(
         value="End the call, notify the user they can hang up.",
+        agent=None,  # Transfer back to triage in AgentSwarm
+    )
+
+def add_supplier(context_variables: Dict) -> Result:
+    """Call this function when the user is supposed to be a supplier """
+    logging.info("Adding the supplier to the database.")
+    sql_insert = generate_sql_insert(context_variables)
+    fetch_db(sql_insert)  
+    print(sql_insert)
+    
+    # A natural, friendly end call message
+    return Result(
+        value="I added the supplier to the database.",
         agent=None,  # Transfer back to triage in AgentSwarm
     )
