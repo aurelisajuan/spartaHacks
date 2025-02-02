@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import Head from "next/head"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -105,6 +106,14 @@ export default function Page() {
 
   return (
     <SidebarProvider defaultOpen={false}>
+      <Head>
+        <link
+          rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+          integrity="sha256-sA+4/7P+YkF1rN65g2X4F5x3S1tLFuM8Xz8aB1x0A+M="
+          crossOrigin=""
+        />
+      </Head>
       <div className="flex h-screen overflow-hidden bg-[#F2F8F8]">
         {/* Sidebar */}
         <Sidebar collapsible="icon" className="bg-[#133223] text-white">
@@ -160,13 +169,8 @@ export default function Page() {
           <div className="flex flex-1 overflow-hidden">
             {/* Map Area using React Leaflet */}
             <div className="flex-1 relative">
-              <MapContainer
-                center={mapCenter}
-                zoom={13}
-                style={{ height: "100%", width: "100%" }} // inline styles to fill container
-              >
+              <MapContainer center={mapCenter} zoom={13} style={{ height: "100%", width: "100%" }}>
                 <TileLayer
-                  // Using OpenStreetMap tiles
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
                 />
