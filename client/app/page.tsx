@@ -15,7 +15,8 @@ import {
   Menu,
   Settings,
   Store,
-  FileText
+  FileText,
+  MessageCircle
 } from "lucide-react"
 import { GoogleMapsEmbed } from '@next/third-parties/google'
 import Image from 'next/image'
@@ -62,7 +63,7 @@ const navItems = [
   { name: "Dashboard", icon: LayoutDashboard },
   { name: "Locations", icon: MapPin },
   { name: "Analytics", icon: Globe },
-  { name: "Chats", icon: FileText },
+  { name: "Chats", icon: MessageCircle },
   { name: "Settings", icon: Settings },
 ]
 
@@ -72,10 +73,43 @@ const initialTranscript = [
   { role: "user", content: "Hi, I'd like to donate some food." },
 ]
 
+// Dummy chat history
+const chatHistories = [
+  {
+    id: 1,
+    type: "supplier", // Supplier chat
+    storeName: "Fresh Market",
+    address: "123 Food St, City",
+    foodDonated: "50kg Fruits",
+  },
+  {
+    id: 2,
+    type: "customer", // Customer chat
+    customerName: "Alice Johnson",
+    address: "789 Main St, City",
+    foodNeeded: "10kg Vegetables",
+  },
+  {
+    id: 3,
+    type: "supplier",
+    storeName: "Healthy Foods",
+    address: "456 Market Ave, Town",
+    foodDonated: "30kg Rice",
+  },
+  {
+    id: 4,
+    type: "customer",
+    customerName: "Michael Smith",
+    address: "567 Avenue Rd, City",
+    foodNeeded: "5kg Dairy",
+  },
+]
+
 export default function Page() {
   const [selectedStore, setSelectedStore] = useState(stores[0])
   const [sidebarExpanded, setSidebarExpanded] = useState(false)
   const [transcript, setTranscript] = useState(initialTranscript)
+  const [showChatSidebar, setShowChatSidebar] = useState(false)
   const [apiKey, setApiKey] = useState<string | null>(null)
   const transcriptRef = useRef<HTMLDivElement>(null)
   const lastMessageRef = useRef<HTMLDivElement>(null)
@@ -94,15 +128,6 @@ export default function Page() {
     return () => clearInterval(interval)
   }, [])
 
-  // Auto scroll to bottom when transcript updates
-  // useEffect(() => {
-  //   if (transcriptRef.current) {
-  //     transcriptRef.current.scrollTo({
-  //       top: transcriptRef.current.scrollHeight,
-  //       behavior: 'smooth'
-  //     });
-  //   }
-  // }, [transcript]);  
   useEffect(() => {
     if (lastMessageRef.current) {
       lastMessageRef.current.scrollIntoView({ behavior: 'smooth' })
@@ -156,19 +181,67 @@ export default function Page() {
               <Menu className="h-6 w-6" />
             </Button>
           </div>
-          <nav className="p-2 space-y-1">
+          <nav className="p-2 space-y-2">
             {navItems.map((item) => (
-                <Button
+              <Button
                 key={item.name}
                 variant="ghost"
-                className={`w-full justify-center sm:justify-start gap-2 rounded-xl hover:bg-[#32C58E] hover:rounded-xl ${sidebarExpanded ? "p-2" : ""}`}
-                >
+                className={`w-full justify-center sm:justify-start gap-2 rounded-xl hover:bg-[#32C58E] ${
+                  sidebarExpanded ? "p-2" : ""
+                }`}
+                onClick={() => item.name === "Chats" && setShowChatSidebar(!showChatSidebar)}
+              >
                 <item.icon className="h-5 w-5" />
                 {sidebarExpanded && <span>{item.name}</span>}
-                </Button>
+              </Button>
             ))}
           </nav>
         </aside>
+
+        {/* Chat Sidebar (Pops Out) */}
+        <div
+          className={`fixed left-0 top-0 h-full bg-[#133223] border-r border-gray-300 shadow-md transition-transform ${
+            showChatSidebar ? "translate-x-0" : "-translate-x-full"
+          } w-80 z-50`}
+        >
+          <div className="p-4 flex justify-between items-center">
+            <h2 className="text-lg font-semibold text-white p-2">Chat History</h2>
+            <Button variant="ghost" className="hover:rounded-[10px] hover:bg-[#32C58E]" onClick={() => setShowChatSidebar(false)}>
+              ✕
+            </Button>
+          </div>
+          <ScrollArea className="h-full">
+            {chatHistories.map((chat) => (
+              <Card
+                key={chat.id}
+                className={`p-4 m-4 shadow-md text-[#133223] bg-white cursor-pointer ${
+                  chat.type === "supplier" ? "border-green-500 hover:bg-green-100" : "border-red-500 hover:bg-red-100"
+                }`}
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="font-medium text-lg">
+                      {chat.type === "supplier" ? chat.storeName : chat.customerName}
+                    </h3>
+                    <p className="text-sm text-gray-600">{chat.address}</p>
+                    <p className="mt-1 text-sm font-medium">
+                      {chat.type === "supplier"
+                        ? `Donated: ${chat.foodDonated}`
+                        : `Needs: ${chat.foodNeeded}`}
+                    </p>
+                  </div>
+                  <Badge
+                    className={`text-white ${
+                      chat.type === "supplier" ? "bg-[#32C58E]" : "bg-red-500"
+                    }`}
+                  >
+                    {chat.type.charAt(0).toUpperCase() + chat.type.slice(1)}
+                  </Badge>
+                </div>
+              </Card>
+            ))}
+          </ScrollArea>
+        </div>
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col">
@@ -176,12 +249,12 @@ export default function Page() {
           <header className="flex h-16 items-center justify-between border-b border-[#55743B]/10 bg-white p-6">
             <h1 className="text-xl font-semibold text-[#133223]">Store Locations</h1>
             <div className="flex items-center gap-2">
-              <Button variant="outline" className="gap-2 rounded-xl">
+              <Button variant="outline" className="gap-2 rounded-xl bg-[#133223]">
                 <Globe className="h-4 w-4" />
                 All Regions
                 <ChevronDown className="h-4 w-4" />
               </Button>
-              <Button variant="outline" className="gap-2 rounded-xl">
+              <Button variant="outline" className="gap-2 rounded-xl bg-[#133223]">
                 <Settings className="h-4 w-4" />
                 Filters
               </Button>
