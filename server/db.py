@@ -1,6 +1,7 @@
 import os 
 from dotenv import load_dotenv 
 from supabase import create_client, Client
+from util import get_geocode
 
 class DatabaseClient:
     def __init__(self):
@@ -14,11 +15,12 @@ class DatabaseClient:
         # Create a Supabase client instance.
         self.supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-    def add_location(self, name: str, lat: float, lng: float) -> dict:
+    def add_location(self, name: str, address: str) -> dict:
+        coordinates = get_geocode(address)
         data_payload = {
             "name": name,
-            "lat": lat,
-            "lng": lng
+            "lat": coordinates["lat"],
+            "lng": coordinates["lng"]
         }
         
         response = self.supabase.table("locations").insert(data_payload).execute()
