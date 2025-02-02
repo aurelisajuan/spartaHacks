@@ -33,7 +33,6 @@ app.add_middleware(
 )
 
 retell = Retell(api_key=os.environ["RETELL_API_KEY"])
-db = DatabaseClient()
 
 
 @app.post("/webhook")
@@ -58,7 +57,6 @@ async def handle_webhook(request: Request):
             print("Call ended event", post_data["data"]["call_id"])
             print(post_data["data"]["transcript"])
             results = process_transcript(post_data["data"]["transcript"])
-
             print(results)
         elif post_data["event"] == "call_analyzed":
             print("Call analyzed event", post_data["data"]["call_id"])
@@ -77,6 +75,7 @@ async def handle_webhook(request: Request):
 # generating responses with LLM and send back to Retell server.
 @app.websocket("/llm-websocket/{call_id}")
 async def websocket_handler(websocket: WebSocket, call_id: str):
+    db = DatabaseClient()
     try:
         await websocket.accept()
         llm_client = LlmClient()
@@ -111,10 +110,13 @@ async def websocket_handler(websocket: WebSocket, call_id: str):
                     }
                 )
                 return
-            if request_json["interaction_type"] == "update_only":
-                print(
-                    f"""Received interaction_type={request_json['interaction_type']}, transcript={request_json['transcript']}, call_id={call_id}"""
+            if request_json.get("interaction_type") == "update_only":
+                print("update_only branch reached")
+                result = db.upsert_call(
+                    call_id=hash(call_id), transcript=request_json.get("transcript")
                 )
+                print("db.upsert_call returned:", result)
+                print("Upserted call")
                 return
             if (
                 request_json["interaction_type"] == "response_required"
