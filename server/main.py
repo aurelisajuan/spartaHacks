@@ -34,6 +34,7 @@ app.add_middleware(
 retell = Retell(api_key=os.environ["RETELL_API_KEY"])
 db = DatabaseClient()
 
+
 @app.post("/webhook")
 async def handle_webhook(request: Request):
     try:
@@ -64,8 +65,8 @@ async def handle_webhook(request: Request):
         return JSONResponse(
             status_code=500, content={"message": "Internal Server Error"}
         )
-        
-        
+
+
 # Start a websocket server to exchange text input and output with Retell server. Retell server
 # will send over transcriptions and other information. This server here will be responsible for
 # generating responses with LLM and send back to Retell server.
