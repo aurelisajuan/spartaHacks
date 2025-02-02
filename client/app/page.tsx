@@ -18,6 +18,7 @@ import {
   FileText
 } from "lucide-react"
 import { GoogleMapsEmbed } from '@next/third-parties/google'
+import Image from 'next/image'
 
 // Updated dummy store data with coordinates
 const stores = [
@@ -95,9 +96,12 @@ export default function Page() {
   // Auto scroll to bottom when transcript updates
   useEffect(() => {
     if (transcriptRef.current) {
-      transcriptRef.current.scrollTop = transcriptRef.current.scrollHeight
+      transcriptRef.current.scrollTo({
+        top: transcriptRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
     }
-  }, [transcript])
+  }, [transcript]);  
 
   // Load Google Maps API key from env variable
   useEffect(() => {
@@ -133,7 +137,8 @@ export default function Page() {
           <div className="flex h-16 items-center justify-between px-3 border-b border-[#55743B]/20">
             {sidebarExpanded && (
               <div className="flex items-center gap-2">
-                <Store className="h-6 w-6 text-[#32C58E]" />
+                {/* <Store className="h-6 w-6 text-[#32C58E]" /> */}
+                <Image src="/logo.png" width={50} height={50} alt="logo" />
                 <span className="font-bold">TFT</span>
               </div>
             )}
@@ -142,19 +147,19 @@ export default function Page() {
               onClick={() => setSidebarExpanded((prev) => !prev)}
               className="p-2"
             >
-              <Menu className="h-6 w-6" />
+              <Menu className="h-6 w-6 rounded-xl hover:bg-[#32C58E] hover:rounded-xl" />
             </Button>
           </div>
           <nav className="p-2 space-y-1">
             {navItems.map((item) => (
-              <Button
+                <Button
                 key={item.name}
                 variant="ghost"
-                className="w-full justify-center sm:justify-start gap-2 hover:bg-white/10 p-2"
-              >
+                className={`w-full justify-center sm:justify-start gap-2 rounded-md hover:bg-[#32C58E] hover:rounded-md ${sidebarExpanded ? "p-2" : ""}`}
+                >
                 <item.icon className="h-5 w-5" />
                 {sidebarExpanded && <span>{item.name}</span>}
-              </Button>
+                </Button>
             ))}
           </nav>
         </aside>
