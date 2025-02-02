@@ -8,6 +8,9 @@ load_dotenv()
 client = OpenAI()
 
 from util import get_geocode
+from db import DatabaseClient
+
+db = DatabaseClient()
 
 
 class FoodItem(BaseModel):
@@ -57,8 +60,13 @@ def extract_food_items(text: str) -> FoodItemList:
 
     if supplier_details.address:
         supplier_details.address = get_geocode(supplier_details.address)
+        lat = supplier_details.address["lat"]
+        lng = supplier_details.address["lng"]
+    
+    db.upsert_supplier(supplier_details.supplier_id, supplier_details.name, supplier_details.food_items, lat, lng)
+    db.upsert_food_item(supplier_details.food_items)
 
-    return supplier_details
+    # return supplier_details
 
 
 # Supplier only

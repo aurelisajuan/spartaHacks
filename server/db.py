@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv 
 from supabase import create_client, Client
 from util import get_geocode
-
+from extractor import FoodItem
 class DatabaseClient:
     def __init__(self):
         load_dotenv()
@@ -120,12 +120,39 @@ class DatabaseClient:
         
         response = self.supabase.table("call").upsert(data_payload).execute()
         return response.data
+    
+    def upsert_supplier(self, supplier_id: int, name: str, food_items: str, lat:float, lng:float):
+        data_payload = {
+            "id": supplier_id,
+            "name": name,
+            # "food_items": food_items,
+            "lat": lat,
+            "lng": lng
+        }
+
+        response = self.supabase.table("locations").upsert(data_payload).execute()
+        return response.data
+
+    def upsert_food_item(self, food_items: list[FoodItem]):
+        for food_item in food_items:
+            data_payload = {
+                "name": food_item.name,
+                "description": food_item.description,
+                "gluten_free": food_item.gluten_free,
+                "vegan": food_item.vegan,
+                "vegetarian": food_item.vegetarian,
+                "halal": food_item.halal,
+                "kosher": food_item.kosher,
+                "location_id": food_item.location_id
+            } 
+            response = self.supabase.table("food_item").upsert(data_payload).execute()
+            print(response.data)
 
 # Example usage:
 if __name__ == "__main__":
     db_client = DatabaseClient()
 
-    upsert_call = db_client.upsert_call(1, "bill", "HI", "BYE")
+    upsert_call = db_client.upsert_call(2, "warren", "HI", "BYE")
     print("Upserted call record:", upsert_call)
     
     # # Example parameters (adjust as needed)
