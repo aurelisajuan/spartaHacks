@@ -59,7 +59,7 @@ class DatabaseClient:
 
         response = self.supabase.rpc("find_nearest_locations_with_diet", payload).execute()
         return response.data
-
+  
     def add_food_item(
         self,
         name: str,
@@ -88,12 +88,6 @@ class DatabaseClient:
 # Example usage:
 if __name__ == "__main__":
     db_client = DatabaseClient()
-    
-    # locations = db_client.get_locations()
-    # print(locations)
-    
-    # food_items = db_client.get_food_items(1)
-    # print(food_items)
     
     # Example parameters (adjust as needed)
     sample_user_lat = -90.0   # example latitude
