@@ -123,7 +123,10 @@ async def websocket_handler(websocket: WebSocket, call_id: str):
                 )
 
                 async for event in llm_client.draft_response(request):
-                    await websocket.send_json(event.__dict__)
+                    try:
+                        await websocket.send_json(event.__dict__)
+                    except Exception as e:
+                        print(f"Error in LLM WebSocket: {e} for {call_id}")
                     if request.response_id < response_id:
                         break  # new response needed, abandon this one
 
@@ -135,6 +138,7 @@ async def websocket_handler(websocket: WebSocket, call_id: str):
     except ConnectionTimeoutError as e:
         print("Connection timeout error for {call_id}")
     except Exception as e:
+        
         print(f"Error in LLM WebSocket: {e} for {call_id}")
         await websocket.close(1011, "Server error")
     finally:

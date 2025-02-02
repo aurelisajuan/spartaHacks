@@ -5,6 +5,8 @@ from typing import Any, Dict, Callable
 from swarm.types import Result
 import logging
 from openai import OpenAI
+from util import get_geocode
+from generator import generate_sql_query, fetch_db
 
 # Initialize OpenAI client if needed
 openai_client = OpenAI()
@@ -12,13 +14,13 @@ openai_client = OpenAI()
 OPENAI_MODEL = "gpt-4o"
 
 locator_instructions = """
-SYSTEM PROMPT: FoodLink Locator Agent  
+SYSTEM PROMPT: TeamFoodTactics Locator Agent  
 
-You are the FoodLink Locator Agent, an AI-powered assistant designed to help users find food supplier locations that meet their dietary needs. Your role is to gather user requirements, locate nearby suppliers that match these needs, and present a couple of options. Once the user selects an option, provide the address and confirm with them.  
+You are the TeamFoodTactics Locator Agent, an AI-powered assistant designed to help users find food supplier locations that meet their dietary needs. Your role is to gather user requirements, locate nearby suppliers that match these needs, and present a couple of options. Once the user selects an option, provide the address and confirm with them.  
 
 ### 1. IDENTITY & ROLE  
 
-- **Identity:** You are the FoodLink Locator Agent—helpful, efficient, and friendly.  
+- **Identity:** You are the TeamFoodTactics Locator Agent—helpful, efficient, and friendly.  
 - **Role:** Assist users by collecting their food preferences, dietary restrictions, and location details, then match them with the nearest supplier locations.  
 
 ### 2. CORE RESPONSIBILITIES  
@@ -83,7 +85,7 @@ Connect users with the nearest food suppliers that match their dietary needs whi
 
 **Technical Note:**  
 - Use location lookup to get latitude/longitude from the user’s address.  
-- Query the database using latitude/longitude.  
+- Query the database using latitude/longitude and dietary restrictions.  
 - When outputting options, do not use bullet points, numbered lists, or markdown formatting. Instead, use a natural language format.
 - Only use the database response in your messages.  
 """
@@ -99,7 +101,7 @@ class LocatorAgent(Agent):
 
 
 def end_call(context_variables: Dict) -> Result:
-    """Call this function when the user is done with their request."""
+    """Call this function when the user says goodbye and thank you."""
     logging.info("Ending the call with the user.")
     return Result(
         value="End the call, notify the user they can hang up.",
@@ -108,27 +110,26 @@ def end_call(context_variables: Dict) -> Result:
 
 
 def convert_address_to_coords(context_variables: Dict, address: str) -> Result:
-    """Call this function before querying the database to find the location of the user."""
+    """Call this function when the user supplies an address or location."""
     logging.info(f"Converting address to coordinates for: {address}")
     print("Ok let me just check your current location.")
-    # Dummy conversion: return fixed coordinates (e.g., San Francisco coordinates)
-    coords = {"latitude": 37.7749, "longitude": -122.4194}
+    
+    # call google geocode 
+    coords = get_geocode(address)
+    new_context_variables = context_variables.copy()
+    new_context_variables["coordinates"] = coords
+    logging.info(f"Converted address '{address}' to coordinates: {coords}")
     return Result(
-        value=f"Converted address '{address}' to coordinates: {coords}", agent=None
+        value=f"Converted address '{address}' to coordinates: {coords}", context_variables=new_context_variables
     )
 
 
 def query_db(context_variables: Dict, query: str) -> Result:
-    """Call this function to query the database for supplier options. Use a natural string to query. For example, "Locations near lat: 37.7749, long: -122.4194 with gluten free, vegetarian, and vegan options."""
-    logging.info(f"Querying database with query: {query}")
-    # Dummy result: return a fixed list of supplier options
-    dummy_options = [
-        {"name": "MSU Food Bank", "address": "123 Main St", "distance": "0.5 miles"},
-        {
-            "name": "Soup Kitchen amazing",
-            "address": "456 Elm St",
-            "distance": "0.8 miles",
-        },
-    ]
-
-    return str(dummy_options)
+    """Call this function to query the database for supplier options once the user supplied a location and dietary restrictions. ."""
+    sql_query = generate_sql_query(context_variables)
+    results = fetch_db(sql_query)
+    logging.info(f"Querying database with query: {sql_query}")
+    return Result(
+        value="I found the following restaurants: " + str(results),
+        agent=None
+    )

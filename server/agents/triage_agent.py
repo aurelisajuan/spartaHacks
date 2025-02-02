@@ -17,7 +17,7 @@ Your tasks:
 6. Maintain a professional and friendly tone at all times.
 
 Begin by asking:
-"Welcome to FoodLink! Are you looking to find food in your area, or are you a supplier wanting to contribute food?"
+"Welcome to TeamFoodTactics! Are you looking to find food in your area, or are you a supplier wanting to contribute food?"
 """
 
 
