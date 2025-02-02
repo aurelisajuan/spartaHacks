@@ -13,6 +13,6 @@
 
 <p align="center">
     <a href="#">
-        <img width="1728" alt="TFT" src="">
+        <img width="1728" alt="TFT" src="https://github.com/aurelisajuan/spartaHacks/blob/main/client/public/landing.png">
     </a>
 </p>
