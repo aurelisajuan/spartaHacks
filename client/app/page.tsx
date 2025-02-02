@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import Head from "next/head"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -15,11 +15,11 @@ import {
   Menu,
   Settings,
   Store,
-  FileText,
+  FileText
 } from "lucide-react"
-import { MapContainer, TileLayer } from "react-leaflet"
+import { GoogleMapsEmbed } from '@next/third-parties/google'
 
-// Dummy store data
+// Updated dummy store data with coordinates
 const stores = [
   {
     id: 1,
@@ -29,6 +29,8 @@ const stores = [
     status: "Active",
     donations: 75,
     requests: 3,
+    lat: 40.7128,
+    lng: -74.0060,
   },
   {
     id: 2,
@@ -38,6 +40,8 @@ const stores = [
     status: "Active",
     donations: 45,
     requests: 2,
+    lat: 40.7138,
+    lng: -74.0070,
   },
   {
     id: 3,
@@ -47,6 +51,8 @@ const stores = [
     status: "Inactive",
     donations: 0,
     requests: 0,
+    lat: 40.7148,
+    lng: -74.0080,
   },
 ]
 
@@ -55,7 +61,7 @@ const navItems = [
   { name: "Dashboard", icon: LayoutDashboard },
   { name: "Locations", icon: MapPin },
   { name: "Analytics", icon: Globe },
-  { name: "Reports", icon: FileText },
+  { name: "Chats", icon: FileText },
   { name: "Settings", icon: Settings },
 ]
 
@@ -69,8 +75,10 @@ export default function Page() {
   const [selectedStore, setSelectedStore] = useState(stores[0])
   const [sidebarExpanded, setSidebarExpanded] = useState(false)
   const [transcript, setTranscript] = useState(initialTranscript)
+  const [apiKey, setApiKey] = useState<string | null>(null)
   const transcriptRef = useRef<HTMLDivElement>(null)
 
+  // Load transcript messages periodically
   useEffect(() => {
     const interval = setInterval(() => {
       setTranscript((prev) => [
@@ -91,16 +99,29 @@ export default function Page() {
     }
   }, [transcript])
 
+  // Load Google Maps API key from env variable
+  useEffect(() => {
+    const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string
+    setApiKey(key)
+  }, [])
+
+  // Memoize the GoogleMapsEmbed component to prevent reloading on transcript updates
+  const GoogleMapsComponent = useMemo(() => {
+    return apiKey ? (
+      <GoogleMapsEmbed
+        apiKey={apiKey}
+        height={760}
+        width="100%"
+        mode="place"
+        q={`${selectedStore.lat},${selectedStore.lng}`}
+      />
+    ) : null
+  }, [apiKey, selectedStore])
+
   return (
     <>
       <Head>
-        <link
-          rel="stylesheet"
-          href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
-          integrity="sha256-sA+4/7P+YkF1rN65g2X4F5x3S1tLFuM8Xz8aB1x0A+M="
-          crossOrigin=""
-        />
-
+        <title>FoodConnect - Store Locations</title>
       </Head>
       <div className="flex min-h-screen bg-[#F2F8F8] overflow-hidden">
         {/* Left Sidenav */}
@@ -140,6 +161,7 @@ export default function Page() {
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col">
+          {/* Header */}
           <header className="flex h-16 items-center justify-between border-b border-[#55743B]/10 bg-white px-6">
             <h1 className="text-xl font-semibold text-[#133223]">Store Locations</h1>
             <div className="flex items-center gap-4">
@@ -155,26 +177,16 @@ export default function Page() {
             </div>
           </header>
 
-          <div className="flex flex-1" >
+          {/* Main content below header: Map and Store Information */}
+          <div className="flex flex-1">
             {/* Map Area */}
-            <div className="relative flex-1" style={{ height: "calc(100vh - 4rem)" }}>
-              <MapContainer
-                center={[40.7128, -74.006]} 
-                zoom={13}
-                style={{ height: "100%", width: "100%" }}
-                className="z-0 overflow-hidden"
-              >
-                <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-                />
-              </MapContainer>
+            <div className="flex-1">
+              {GoogleMapsComponent}
             </div>
 
-            {/* Right sidenav */}
+            {/* Right Store Information Panel */}
             <div className="w-96 flex flex-col bg-white border-l border-[#55743B]/10" style={{ height: "calc(100vh - 4rem)" }}>
-              {/* Store Information */}
-              <div className="flex-1 p-4 border-b border-[#55743B]/10 overflow-auto h-1/2">
+              <div className="flex-1 p-4 border-b border-[#55743B]/10 overflow-auto">
                 <h2 className="mb-4 text-lg font-semibold text-[#133223]">Store Information</h2>
                 <div className="space-y-4">
                   {stores.map((store) => (
@@ -222,11 +234,14 @@ export default function Page() {
               </div>
 
               {/* Live Transcript */}
-              <div className="flex-1 border-t border-[#55743B]/10 h-1/2">
+              <div className="flex-1 border-t border-[#55743B]/10">
                 <div className="px-4 py-2 border-b border-[#55743B]/10">
                   <h2 className="text-lg font-semibold text-[#133223]">Live Transcript</h2>
                 </div>
-                <ScrollArea className="h-[calc(100%-2.5rem)]" ref={transcriptRef}>
+                <ScrollArea
+                  className="h-[calc(100%-2.5rem)] overflow-y-auto"
+                  ref={transcriptRef}
+                >
                   <div className="space-y-2 p-2">
                     {transcript.map((msg, index) => (
                       <div
