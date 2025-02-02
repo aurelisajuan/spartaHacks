@@ -1,36 +1,24 @@
 from dotenv import load_dotenv
 import os
+import openai
+import psycopg2
+import json
 
 load_dotenv(override=True)
 
-import openai
-import psycopg2
-
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_PASSWORD = os.getenv("DB_PASSWORD")
 
-uri = f"postgresql://postgres.vspiducqotienguaopyc:{DB_PASSWORD}@aws-0-us-west-1.pooler.supabase.com:6543/postgres"
+# Updated URI with SSL and disabled GSSAPI
+uri = f"postgresql://postgres.vspiducqotienguaopyc:{DB_PASSWORD}@aws-0-us-west-1.pooler.supabase.com:6543/postgres?sslmode=require&gssencmode=disable"
 
 openai.api_key = OPENAI_API_KEY
 
+
 def generate_sql_query(conversation) -> str:
-    """
-    Given a string representing the conversation between user and LLM,
-    call the OpenAI model to generate a SQL query that filters
-    'locations' and/or 'food_item' by relevant parameters, including:
-      - Distance from a user-supplied lat/lng (possibly using Haversine).
-      - Cardinal directions (east, west, north, south) relative to a user’s lat/lng.
-      - Dietary restrictions: gluten_free, vegan, vegetarian, kosher, halal
-      - food_item.type from enum: meat, dairy, produce, grains, prepared
-
-    Returns the generated SQL query as a string.
-    """
-
-    # -- 1. System prompt with an expanded explanation for cardinal directions, etc. --
     system_prompt = """
 You are a data-management agent tasked with generating valid PostgreSQL SQL statements
 based on a specified schema, user location references, dietary preferences, and conversation context.
-
 
 Here is the database schema:
 
@@ -77,35 +65,30 @@ NEVER include data from the food_item table in your query.
 
 Output only the final SQL query. No additional text.
 """
-
-    # -- 2. User conversation prompt --
     user_prompt = f"""
 User conversation (condensed/filtered):
 {conversation}
 
 Generate the final SQL query now.
 """
-
     response = openai.chat.completions.create(
-        model="o3-mini",  # Or your desired model name
+        model="o3-mini",
         messages=[
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
+            {"role": "user", "content": user_prompt},
         ],
         reasoning_effort="low",
-
     )
-
     sql_query = response.choices[0].message.content
+    if "```sql" in sql_query:
+        sql_query = sql_query.split("```sql")[1].split("```")[0]
     return sql_query.strip()
 
 
 def generate_sql_insert(conversation) -> str:
-        # -- 1. System prompt with an expanded explanation for cardinal directions, etc. --
     system_prompt = """
 You are a data-management agent tasked with generating valid PostgreSQL SQL statements
 based on a specified schema, user location references, dietary preferences, and conversation context.
-
 
 Here is the database schema:
 
@@ -145,40 +128,30 @@ Table: food_item
 - If the user doesn't mention a specific column or filter, do not filter or set that column.
 - Output only the SQL statements, with no additional commentary, code fences, or disclaimers.
 """
-
-    # -- 2. User conversation prompt --
     user_prompt = f"""
 User conversation (condensed/filtered):
 {conversation}
 
 Generate the final SQL query now.
 """
-
     response = openai.chat.completions.create(
-        model="o3-mini",  # Or your desired model name
+        model="o3-mini",
         messages=[
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
+            {"role": "user", "content": user_prompt},
         ],
         reasoning_effort="low",
-
     )
-
     sql_query = response.choices[0].message.content
     return sql_query.strip()
 
+
 def fetch_db(sql_query: str) -> list:
-    """
-    Executes the given SQL query against the configured PostgreSQL database
-    and returns all fetched rows.
-    """
-    # Connect to PostgreSQL
     conn = psycopg2.connect(uri)
     results = []
     try:
         with conn.cursor() as cur:
             cur.execute(sql_query)
-            # You may return columns or entire rows depending on your query
             results = cur.fetchall()
     finally:
         conn.close()
@@ -201,8 +174,6 @@ def main():
           I only want places that have halal options.
           I'm okay with any food_item type.
     """
-
-
 
     # Generate the SQL query from the conversation
     sql_query = generate_sql_query(conversation_history)

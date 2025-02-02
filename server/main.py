@@ -15,6 +15,7 @@ from typing import Optional
 from socket_manager import manager
 from llm import LlmClient
 from db import DatabaseClient
+from extractor import process_transcript
 
 
 load_dotenv(override=True)
@@ -56,6 +57,9 @@ async def handle_webhook(request: Request):
         elif post_data["event"] == "call_ended":
             print("Call ended event", post_data["data"]["call_id"])
             print(post_data["data"]["transcript"])
+            results = process_transcript(post_data["data"]["transcript"])
+
+            print(results)
         elif post_data["event"] == "call_analyzed":
             print("Call analyzed event", post_data["data"]["call_id"])
         else:
@@ -129,17 +133,18 @@ async def websocket_handler(websocket: WebSocket, call_id: str):
                     except Exception as e:
                         print(f"Error in LLM WebSocket: {e} for {call_id}")
                     if request.response_id < response_id:
+                        print("Breaking")
                         break  # new response needed, abandon this one
 
         async for data in websocket.iter_json():
-            asyncio.create_task(handle_message(data))
+            task = asyncio.create_task(handle_message(data))
+            task.add_done_callback(lambda t: t.exception() if t.exception() else None)
 
     except WebSocketDisconnect:
         print(f"LLM WebSocket disconnected for {call_id}")
     except ConnectionTimeoutError as e:
         print("Connection timeout error for {call_id}")
     except Exception as e:
-        
         print(f"Error in LLM WebSocket: {e} for {call_id}")
         await websocket.close(1011, "Server error")
     finally:

@@ -113,23 +113,42 @@ def convert_address_to_coords(context_variables: Dict, address: str) -> Result:
     """Call this function when the user supplies an address or location."""
     logging.info(f"Converting address to coordinates for: {address}")
     print("Ok let me just check your current location.")
-    
-    # call google geocode 
+
+    # call google geocode
     coords = get_geocode(address)
     new_context_variables = context_variables.copy()
     new_context_variables["coordinates"] = coords
     logging.info(f"Converted address '{address}' to coordinates: {coords}")
     return Result(
-        value=f"Converted address '{address}' to coordinates: {coords}", context_variables=new_context_variables
+        value=f"Converted address '{address}' to coordinates: {coords}",
+        context_variables=new_context_variables,
     )
 
 
 def query_db(context_variables: Dict, query: str) -> Result:
     """Call this function to query the database for supplier options once the user supplied a location and dietary restrictions. ."""
     sql_query = generate_sql_query(context_variables)
-    results = fetch_db(sql_query)
     logging.info(f"Querying database with query: {sql_query}")
-    return Result(
-        value="I found the following restaurants: " + str(results),
-        agent=None
-    )
+    results = fetch_db(sql_query)
+    logging.info(f"Found these results: {results}")
+    # results = [
+    #     {
+    #         "name": "Food Bank NYC",
+    #         "address": "123 Main St, New York, NY",
+    #         "distance": "0.5 miles",
+    #         "dietary_options": ["halal", "kosher", "vegetarian"]
+    #     },
+    #     {
+    #         "name": "Community Kitchen",
+    #         "address": "456 Broadway, New York, NY",
+    #         "distance": "1.2 miles",
+    #         "dietary_options": ["vegan", "gluten-free"]
+    #     },
+    #     {
+    #         "name": "Local Pantry",
+    #         "address": "789 Park Ave, New York, NY",
+    #         "distance": "2.1 miles",
+    #         "dietary_options": ["halal", "vegetarian"]
+    #     }
+    # ]
+    return Result(value="I found the following restaurants: " + str(results))

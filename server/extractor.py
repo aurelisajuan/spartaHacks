@@ -7,7 +7,6 @@ load_dotenv()
 
 client = OpenAI()
 
-
 class FoodItem(BaseModel):
     name: str
     description: str
@@ -18,7 +17,8 @@ class FoodItem(BaseModel):
     halal: bool
     kosher: bool
 
- class FoodItemList(BaseModel):
+
+class FoodItemList(BaseModel):
     items: list[FoodItem]
 
 
@@ -37,7 +37,6 @@ Here is the transcript:
 Extract the food items from the transcript. Analyze weather each individual item is gluten-free, vegan, vegetarian, halal, or kosher.
 """
 
-
 def extract_food_items(text: str) -> FoodItemList:
     completion = client.beta.chat.completions.parse(
         model="o3-mini",
@@ -51,7 +50,7 @@ def extract_food_items(text: str) -> FoodItemList:
     items = completion.choices[0].message.parse
     return items
 
-
+# Supplier only
 def process_transcript(transcript: str) -> FoodItemList:
     tools = [
         {
