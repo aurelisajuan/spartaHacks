@@ -58,4 +58,28 @@ class ResponseResponse(BaseModel):
     transfer_number: Optional[str] = None
 
 
+class AgentInterruptResponse(BaseModel):
+    response_type: Literal["agent_interrupt"] = "agent_interrupt"
+    interrupt_id: int
+    content: str
+    content_complete: bool
+    no_interruption_allowed: Optional[bool] = None
+    end_call: Optional[bool] = False
+    transfer_number: Optional[str] = None
+    digit_to_press: Optional[str] = None
+
+
+class ToolCallInvocationResponse(BaseModel):
+    response_type: Literal["tool_call_invocation"] = "tool_call_invocation"
+    tool_call_id: str
+    name: str
+    arguments: str
+
+
+class ToolCallResultResponse(BaseModel):
+    response_type: Literal["tool_call_result"] = "tool_call_result"
+    tool_call_id: str
+    content: str
+
+
 CustomLlmResponse = Union[ConfigResponse | PingPongResponse | ResponseResponse]

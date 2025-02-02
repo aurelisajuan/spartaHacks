@@ -58,9 +58,6 @@ When the user requests cardinal directions:
  - "north of me": location.lat > user_lat
  - "south of me": location.lat < user_lat
 
-For "within some distance of me," consider using a distance formula (e.g., Haversine) or bounding box in WHERE.
-If the user does not specify a particular filter or direction, leave it out.
-
 NEVER include data from the food_item table in your query.
 
 Output only the final SQL query. No additional text.

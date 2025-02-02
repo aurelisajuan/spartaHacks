@@ -8,6 +8,9 @@ from custom_types import (
     ResponseRequiredRequest,
     ResponseResponse,
     Utterance,
+    ToolCallInvocationResponse,
+    ToolCallResultResponse,
+    AgentInterruptResponse,
 )
 from functions import convert_address_to_coords, query_db
 from prompts import locator_instructions, provider_instructions, triage_instructions
@@ -214,6 +217,11 @@ class LlmClient:
                     args = {}
 
                 print("Processing function call:", fc.function.name)
+                yield ToolCallInvocationResponse(
+                    tool_call_id=fc.id,
+                    name=fc.function.name,
+                    arguments=fc.function.arguments,
+                )
 
                 # Process the function call and append a tool response.
                 if fc.function.name == "end_call":
@@ -222,6 +230,10 @@ class LlmClient:
                         content=args.get("message", ""),
                         content_complete=True,
                         end_call=True,
+                    )
+                    yield ToolCallResultResponse(
+                        tool_call_id=fc.id,
+                        content=args.get("message", ""),
                     )
                     return
                 elif fc.function.name == "transfer":
@@ -233,6 +245,10 @@ class LlmClient:
                             "tool_call_id": fc.id,
                             "content": f"Transferred call to {args.get('agent')}",
                         }
+                    )
+                    yield ToolCallResultResponse(
+                        tool_call_id=fc.id,
+                        content=f"Transferred call to {args.get('agent')}",
                     )
                 elif fc.function.name == "convert_address_to_coords":
                     address = args.get("address")
@@ -251,6 +267,10 @@ class LlmClient:
                             "tool_call_id": fc.id,
                             "content": output,
                         }
+                    )
+                    yield ToolCallResultResponse(
+                        tool_call_id=fc.id,
+                        content=output,
                     )
                 elif fc.function.name == "query_db":
                     yield ResponseResponse(
