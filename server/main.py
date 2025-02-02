@@ -14,6 +14,7 @@ from custom_types import (
 from typing import Optional
 from socket_manager import manager
 from llm import LlmClient
+from db import DatabaseClient
 
 
 load_dotenv(override=True)
@@ -31,6 +32,7 @@ app.add_middleware(
 )
 
 retell = Retell(api_key=os.environ["RETELL_API_KEY"])
+db = DatabaseClient()
 
 @app.post("/webhook")
 async def handle_webhook(request: Request):
@@ -140,9 +142,11 @@ async def websocket_handler(websocket: WebSocket, call_id: str):
 # Returns all locations
 @app.get("/locations")
 async def get_locations():
-    pass
-
+    locations = db.get_locations()
+    return locations
+    
 # Returns all food items at a given location
 @app.get("/fooditems/{location_id}")
 async def get_food_items(location_id: int):
-    pass
+    food_items = db.get_food_items(location_id)
+    return food_items
