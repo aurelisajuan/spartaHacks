@@ -7,6 +7,9 @@ load_dotenv()
 
 client = OpenAI()
 
+from util import get_geocode
+
+
 class FoodItem(BaseModel):
     name: str
     description: str
@@ -26,7 +29,8 @@ class SupplierDetails(BaseModel):
     name: str
     phone_number: str
     address: str
-    food_items: FoodItemList
+    supplier_id: int
+    food_items: list[FoodItem]
 
 
 extract_food_items_prompt = """You are an expert at extracting food items from a transcript of a conversation.
@@ -35,7 +39,9 @@ Here is the transcript:
 {text}
 
 Extract the food items from the transcript. Analyze weather each individual item is gluten-free, vegan, vegetarian, halal, or kosher.
+If Supplier details is present, extract the supplier details. Else just return empty strings and -1 for the supplier_id.
 """
+
 
 def extract_food_items(text: str) -> FoodItemList:
     completion = client.beta.chat.completions.parse(
@@ -44,11 +50,16 @@ def extract_food_items(text: str) -> FoodItemList:
         messages=[
             {"role": "user", "content": extract_food_items_prompt.format(text=text)}
         ],
-        response_format=FoodItemList,
+        response_format=SupplierDetails,
     )
 
-    items = completion.choices[0].message.parse
-    return items
+    supplier_details = completion.choices[0].message.parse
+
+    if supplier_details.address:
+        supplier_details.address = get_geocode(supplier_details.address)
+
+    return supplier_details
+
 
 # Supplier only
 def process_transcript(transcript: str) -> FoodItemList:

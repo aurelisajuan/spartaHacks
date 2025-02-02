@@ -112,6 +112,9 @@ async def websocket_handler(websocket: WebSocket, call_id: str):
                 )
                 return
             if request_json["interaction_type"] == "update_only":
+                print(
+                    f"""Received interaction_type={request_json['interaction_type']}, transcript={request_json['transcript']}, call_id={call_id}"""
+                )
                 return
             if (
                 request_json["interaction_type"] == "response_required"
