@@ -23,7 +23,14 @@ class FoodItemList(BaseModel):
     items: list[FoodItem]
 
 
-prompt = """You are an expert at extracting food items from a transcript of a conversation.
+class SupplierDetails(BaseModel):
+    name: str
+    phone_number: str
+    address: str
+    food_items: FoodItemList
+
+
+extract_food_items_prompt = """You are an expert at extracting food items from a transcript of a conversation.
 
 Here is the transcript:
 {text}
@@ -36,16 +43,78 @@ def extract_food_items(text: str) -> FoodItemList:
     completion = client.beta.chat.completions.parse(
         model="o3-mini",
         reasoning_effort="low",
-        messages=[{"role": "user", "content": prompt.format(text=text)}],
+        messages=[
+            {"role": "user", "content": extract_food_items_prompt.format(text=text)}
+        ],
         response_format=FoodItemList,
     )
 
-    items = completion.choices[0].message.parsed
+    items = completion.choices[0].message.parse
     return items
 
 
+def process_transcript(transcript: str) -> FoodItemList:
+    tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": "extract_food_items",
+                "description": "Extract food items from a transcript of a conversation.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "text": {"type": "string"},
+                    },
+                    "required": ["text"],
+                    "additionalProperties": False,
+                },
+                "strict": True,
+            },
+        }
+    ]
+
+    prompt = """Analyze the provided transcript. If the transcript is a supplier calling in with excess food items, call the extract_food_items function. 
+    Do not call the function if the transcript is a locator calling in to find a location to get food items.
+    
+    The transcript is:
+    {transcript}
+    
+    Output a json object with the following fields:
+    "title": "A title for the conversation" | string
+    "food_items": "The food items extracted from the transcript" | string | eg. "carrots, lettuce, and tomatoes" or ""
+    """
+    print("Transcript: " + prompt.format(transcript=transcript))
+    messages = [{"role": "user", "content": prompt.format(transcript=transcript)}]
+    completion = client.chat.completions.create(
+        model="gpt-4o",
+        messages=messages,
+        tools=tools,
+        response_format={"type": "json_object"},
+    )
+
+    if completion.choices[0].message.tool_calls:
+        tool_call = completion.choices[0].message.tool_calls[0]
+        extracted_items = extract_food_items(transcript)
+        messages.append(completion.choices[0].message)
+        messages.append(
+            {
+                "role": "tool",
+                "content": "Completed the tool call successfully",
+                "tool_call_id": tool_call.id,
+            }
+        )
+
+        completion2 = client.chat.completions.create(
+            model="gpt-4o",
+            messages=messages,
+        )
+        return completion2.choices[0].message.content
+    else:
+        return completion.choices[0].message.content
+
+
 if __name__ == "__main__":
-    dummy_conversation = """
+    dummy_supplier_call = """
     Hi, I'm from Second Harvest Food Bank and we have some extra food items to contribute today.
     
     We have about 50 pounds of fresh produce including carrots, lettuce, and tomatoes. 
@@ -56,5 +125,11 @@ if __name__ == "__main__":
     
     Finally, we have 20 gallons of milk and 15 pounds of cheese.
     """
-    items = extract_food_items(dummy_conversation)
-    print(items)
+    results = process_transcript(dummy_supplier_call)
+    print(results)
+
+    dummy_locator_call = """
+    Hi, I'm from the Red Cross and we need to find a location to donate food items to.
+    """
+    results = process_transcript(dummy_locator_call)
+    print(results)

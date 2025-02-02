@@ -55,6 +55,7 @@ async def handle_webhook(request: Request):
             print("Call started event", post_data["data"]["call_id"])
         elif post_data["event"] == "call_ended":
             print("Call ended event", post_data["data"]["call_id"])
+            print(post_data["data"]["transcript"])
         elif post_data["event"] == "call_analyzed":
             print("Call analyzed event", post_data["data"]["call_id"])
         else:
@@ -140,12 +141,14 @@ async def websocket_handler(websocket: WebSocket, call_id: str):
     finally:
         print(f"LLM WebSocket connection closed for {call_id}")
 
+
 # Returns all locations
 @app.get("/locations")
 async def get_locations():
     locations = db.get_locations()
     return locations
-    
+
+
 # Returns all food items at a given location
 @app.get("/fooditems/{location_id}")
 async def get_food_items(location_id: int):
