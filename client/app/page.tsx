@@ -145,9 +145,9 @@ export default function Page() {
             <Button
               variant="ghost"
               onClick={() => setSidebarExpanded((prev) => !prev)}
-              className="p-2"
+              className="p-2 rounded-xl hover:bg-[#32C58E] hover:rounded-xl"
             >
-              <Menu className="h-6 w-6 rounded-xl hover:bg-[#32C58E] hover:rounded-xl" />
+              <Menu className="h-6 w-6" />
             </Button>
           </div>
           <nav className="p-2 space-y-1">
@@ -155,7 +155,7 @@ export default function Page() {
                 <Button
                 key={item.name}
                 variant="ghost"
-                className={`w-full justify-center sm:justify-start gap-2 rounded-md hover:bg-[#32C58E] hover:rounded-md ${sidebarExpanded ? "p-2" : ""}`}
+                className={`w-full justify-center sm:justify-start gap-2 rounded-xl hover:bg-[#32C58E] hover:rounded-xl ${sidebarExpanded ? "p-2" : ""}`}
                 >
                 <item.icon className="h-5 w-5" />
                 {sidebarExpanded && <span>{item.name}</span>}
@@ -169,13 +169,13 @@ export default function Page() {
           {/* Header */}
           <header className="flex h-16 items-center justify-between border-b border-[#55743B]/10 bg-white p-6">
             <h1 className="text-xl font-semibold text-[#133223]">Store Locations</h1>
-            <div className="flex items-center gap-4">
-              <Button variant="outline" className="gap-2">
+            <div className="flex items-center gap-2">
+              <Button variant="outline" className="gap-2 rounded-xl">
                 <Globe className="h-4 w-4" />
                 All Regions
                 <ChevronDown className="h-4 w-4" />
               </Button>
-              <Button variant="outline" className="gap-2">
+              <Button variant="outline" className="gap-2 rounded-xl">
                 <Settings className="h-4 w-4" />
                 Filters
               </Button>
