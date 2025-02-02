@@ -100,6 +100,7 @@ export default function Page() {
           integrity="sha256-sA+4/7P+YkF1rN65g2X4F5x3S1tLFuM8Xz8aB1x0A+M="
           crossOrigin=""
         />
+
       </Head>
       <div className="flex min-h-screen bg-[#F2F8F8] overflow-hidden">
         {/* Left Sidenav */}
